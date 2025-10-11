@@ -1,7 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.IO.Ports;
+//using System.IO.Ports;
 using UnityEngine;
 using UnityEngine.UI;
 using System.Threading.Tasks;
@@ -11,13 +11,13 @@ public class SendComPort : MonoBehaviour
 {
 
     private Queue<int> _queue = new Queue<int>();
-    private SerialPort mySerialPort;
+   // private SerialPort mySerialPort;
     private bool _isSend;
     private string _read;
 
     public void Init()
     {
-        mySerialPort = new SerialPort();
+        //mySerialPort = new SerialPort();
         _isSend = true;
         CreatPort();
     }
@@ -48,23 +48,23 @@ public class SendComPort : MonoBehaviour
 
     private void OnDestroy()
     {
-        mySerialPort.Close();
+        //mySerialPort.Close();
     }
 
     private void CreatPort() //Открываем порт
     {
-        mySerialPort.PortName = CheckPorts(); //Устанавливаем номер порта, который будем открывать.  "COM4"; //
-        mySerialPort.BaudRate = 9600;
-        mySerialPort.Parity = Parity.None;
-        mySerialPort.StopBits = StopBits.One;
-        mySerialPort.DataBits = 8;
-        mySerialPort.Handshake = Handshake.None;
-        mySerialPort.RtsEnable = true;
-        mySerialPort.ReadBufferSize = 100;
+        // mySerialPort.PortName = CheckPorts(); //Устанавливаем номер порта, который будем открывать.  "COM4"; //
+        // mySerialPort.BaudRate = 9600;
+        // mySerialPort.Parity = Parity.None;
+        // mySerialPort.StopBits = StopBits.One;
+        // mySerialPort.DataBits = 8;
+        // mySerialPort.Handshake = Handshake.None;
+        // mySerialPort.RtsEnable = true;
+        // mySerialPort.ReadBufferSize = 100;
         //mySerialPort.DataReceived += new (SerialPort_DataReceived);
         try
         {
-            mySerialPort.Open(); //Открываем порт
+           // mySerialPort.Open(); //Открываем порт
         }
         catch (Exception e)
         {
@@ -76,46 +76,46 @@ public class SendComPort : MonoBehaviour
 
     private string CheckLastPorts() //Проверяем есть ли COM-порт с подключённым устройством.
     {
-        string[] ports = SerialPort.GetPortNames();
-
-        Debug.Log(ports.Length);
-
-        if (ports.Length == 0) return "COM1";
-        
-        if (ports[ports.Length - 1].Contains("COM"))
-        {
-            return ports[ports.Length - 1]; //Берём первый существующий порт
-        }
-        else
-        {
-            return "COM1";
-        }
-
-        foreach(string port in ports)
-        {
-            Debug.Log(port);
-            if (port.Contains("COM"))
-            {
-                return port; //Берём первый существующий порт
-            }
-        }
+        // string[] ports = SerialPort.GetPortNames();
+        //
+        // Debug.Log(ports.Length);
+        //
+        // if (ports.Length == 0) return "COM1";
+        //
+        // if (ports[ports.Length - 1].Contains("COM"))
+        // {
+        //     return ports[ports.Length - 1]; //Берём первый существующий порт
+        // }
+        // else
+        // {
+        //     return "COM1";
+        // }
+        //
+        // foreach(string port in ports)
+        // {
+        //     Debug.Log(port);
+        //     if (port.Contains("COM"))
+        //     {
+        //         return port; //Берём первый существующий порт
+        //     }
+        // }
         return "COM1";
     }
     
     private string CheckPorts() //Проверяем есть ли COM-порт с подключённым устройством.
     {
-        string[] ports = SerialPort.GetPortNames();
-
-        Debug.Log(ports.Length);
-        if (ports.Length == 0) return "COM1";
-        foreach(string port in ports)
-        {
-            Debug.Log(port);
-            if (port.Contains("COM"))
-            {
-                return port; //Берём первый существующий порт
-            }
-        }
+        // string[] ports = SerialPort.GetPortNames();
+        //
+        // Debug.Log(ports.Length);
+        // if (ports.Length == 0) return "COM1";
+        // foreach(string port in ports)
+        // {
+        //     Debug.Log(port);
+        //     if (port.Contains("COM"))
+        //     {
+        //         return port; //Берём первый существующий порт
+        //     }
+        // }
         return "COM1";
     }
 
@@ -128,7 +128,7 @@ public class SendComPort : MonoBehaviour
             //byte[] data = new byte[0];
             //data[0] = str;
             byte[] data = BitConverter.GetBytes(number);
-            mySerialPort.Write(data, 0, 1);
+            //mySerialPort.Write(data, 0, 1);
         }
         catch (Exception e)
         {
@@ -147,12 +147,12 @@ public class SendComPort : MonoBehaviour
         Debug.Log(_queue.Count + " "  + _isSend);
     }
 
-    private void SerialPort_DataReceived(object sender, SerialDataReceivedEventArgs e)
-    {
-        Debug.Log("Resiver " + e.EventType);
-        string receivedData = mySerialPort.ReadLine();
-        //Text.text += "->" + receivedData + "\r\n";
-        Debug.Log("Received from Arduino: " + receivedData);
-    }
+    // private void SerialPort_DataReceived(object sender, SerialDataReceivedEventArgs e)
+    // {
+    //     Debug.Log("Resiver " + e.EventType);
+    //     string receivedData = mySerialPort.ReadLine();
+    //     //Text.text += "->" + receivedData + "\r\n";
+    //     Debug.Log("Received from Arduino: " + receivedData);
+    // }
 
 }

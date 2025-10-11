@@ -1,26 +1,36 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using System.Threading.Tasks;
 using UnityEngine;
 using InTheHand.Net;
 using InTheHand.Net.Bluetooth;
 using InTheHand.Net.Sockets;
-using InTheHand.Net.Bluetooth.AttributeIds;
+using TMPro;
+using UnityEngine.UI;
 
 public class BluetoothManager : MonoBehaviour
 {
+
+    public TMP_Text Log;
+    public Button b_SearchDevices;
+    public Button b_Connect;
+    private Stream _stream;
+
     private BluetoothClient bluetoothClient;
-    private List<BluetoothDeviceInfo> devices;
+    private IReadOnlyCollection<BluetoothDeviceInfo> devices;
 
     private Queue<int> _queue = new Queue<int>();
     private bool _isSend;
 
     public void Init()
     {
-        _isSend = false;
+        _isSend = true;
         //bluetoothClient = new BluetoothClient();
-        //devices = new List<BluetoothDeviceInfo>();
+        devices = new List<BluetoothDeviceInfo>();
+        b_SearchDevices.onClick.AddListener(SearchDevices);
+        b_Connect.onClick.AddListener(OnConnect);
     }
     
     private void Update()
@@ -33,31 +43,64 @@ public class BluetoothManager : MonoBehaviour
 
     public void SearchDevices()
     {
-        devices.Clear();
+        //devices.Clear();
         // Получаем список устройств
-        BluetoothDeviceInfo[] array = bluetoothClient.DiscoverDevices();
-        devices.AddRange(array);
-
+        devices = bluetoothClient.DiscoverDevices();
+        //devices.AddRange(array);
+        
         // Выводим информацию о найденных устройствах
         foreach (var device in devices)
         {
+            
+            Log.text +=
+                $"Device Name: {device.DeviceName}, Address: {device.DeviceAddress}, Connected: {device.Connected}" +
+                "\r\n";
             Debug.Log($"Device Name: {device.DeviceName}, Address: {device.DeviceAddress}, Connected: {device.Connected}");
         }
+    }
+
+    private void OnConnect()
+    {
+        ConnectToDevice(null);
+        foreach (var device in devices)
+        {
+            if (device.DeviceName == "TESTER")
+            {
+                ConnectToDevice(device.DeviceAddress);
+            }
+        }
+        
     }
 
     // Подключение к устройству по адресу
     public void ConnectToDevice(BluetoothAddress address)
     {
+        BluetoothAddress ba = new BluetoothAddress(0x00211301E35D);
+        if(_stream!=null)
+            _stream.Close();
+        if (bluetoothClient != null)
+        {
+            bluetoothClient.Close();
+            bluetoothClient.Dispose();
+        }
         try
         {
-            BluetoothEndPoint ep = new BluetoothEndPoint(address, BluetoothService.SerialPort);
+            bluetoothClient = new BluetoothClient();
+            BluetoothEndPoint ep = new BluetoothEndPoint(ba, BluetoothService.SerialPort);
             bluetoothClient.Connect(ep);
+            
+            Log.text += "Connected successfully!"+ "\r\n";
             Debug.Log("Connected successfully!");
         }
         catch (Exception ex)
         {
+            Log.text += "Connection failed: "+ ex.Message + "\r\n";
             Debug.LogError($"Connection failed: {ex.Message}");
         }
+    }
+
+    private void BluetootheClientConnectCallback(IAsyncResult result)
+    {
     }
 
     // Отправка данных
@@ -93,15 +136,21 @@ public class BluetoothManager : MonoBehaviour
     {
         _isSend = false;
         Debug.Log(number);
-        try
+        if (bluetoothClient.Connected)
         {
-            byte[] data = BitConverter.GetBytes(number);
-            //mySerialPort.Write(data, 0, 1);
-            //TODO Отправка на блютуз
-        }
-        catch (Exception e)
-        {
-            Debug.Log(e);
+            try
+            {
+                byte[] data = BitConverter.GetBytes(number);
+                //mySerialPort.Write(data, 0, 1);
+                _stream = bluetoothClient.GetStream();
+                _stream.Write(data, 0, data.Length);
+            }
+            catch (Exception e)
+            {
+                Log.text += e + "\r\n";
+                OnConnect();
+                Debug.Log(e);
+            }
         }
         
         _isSend = true;
@@ -112,4 +161,10 @@ public class BluetoothManager : MonoBehaviour
         _queue.Enqueue(message);
         Debug.Log(_queue.Count + " "  + _isSend);
     }
+    
+    void OnApplicationFocus(bool hasFocus)
+    {
+        Log.text += "Focus: " + hasFocus + "\r\n";
+    }
+    
 }

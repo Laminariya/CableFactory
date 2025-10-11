@@ -53,7 +53,7 @@ public class SendComPort : MonoBehaviour
 
     private void CreatPort() //Открываем порт
     {
-        mySerialPort.PortName = CheckLastPorts();//"COM18"; //CheckPorts(); //Устанавливаем номер порта, который будем открывать.  "COM4"; //
+        mySerialPort.PortName = CheckPorts(); //Устанавливаем номер порта, который будем открывать.  "COM4"; //
         mySerialPort.BaudRate = 9600;
         mySerialPort.Parity = Parity.None;
         mySerialPort.StopBits = StopBits.One;
@@ -80,6 +80,8 @@ public class SendComPort : MonoBehaviour
 
         Debug.Log(ports.Length);
 
+        if (ports.Length == 0) return "COM1";
+        
         if (ports[ports.Length - 1].Contains("COM"))
         {
             return ports[ports.Length - 1]; //Берём первый существующий порт
@@ -105,7 +107,7 @@ public class SendComPort : MonoBehaviour
         string[] ports = SerialPort.GetPortNames();
 
         Debug.Log(ports.Length);
-        
+        if (ports.Length == 0) return "COM1";
         foreach(string port in ports)
         {
             Debug.Log(port);

@@ -28,10 +28,12 @@ public class BluetoothManager : MonoBehaviour
     private Queue<int> _queue = new Queue<int>();
     private bool _isSend;
     private GameManager _manager;
+    private JsonClass _jsonClass;
 
     public void Init()
     {
         _manager = GetComponent<GameManager>();
+        _jsonClass = GetComponent<JsonClass>();
         _isSend = true;
         //bluetoothClient = new BluetoothClient();
         devices = new List<BluetoothDeviceInfo>();
@@ -82,10 +84,24 @@ public class BluetoothManager : MonoBehaviour
         
     }
 
+    private byte[] GetBytes(string str)
+    {
+        byte[] bytes = new byte[str.Length / 2];
+
+        for (int i = 0; i < str.Length; i += 2)
+        {
+            bytes[i / 2] = Convert.ToByte(str.Substring(i, 2), 16);
+        }
+
+        return bytes;
+    }
+
     // Подключение к устройству по адресу
     public void ConnectToDevice(BluetoothAddress address)
     {
-        BluetoothAddress ba = new BluetoothAddress(0x00211301E35D);
+        ulong u = Convert.ToUInt64(_jsonClass.jsonData.AddressBluetooth, 16);
+        BluetoothAddress ba = new BluetoothAddress(u); //0x00211301E35D
+       
         if (_stream != null)
         {
             _stream.Close();

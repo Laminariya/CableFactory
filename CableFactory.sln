@@ -1,6 +1,8 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 11.00
 # Visual Studio 2010
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Assembly-CSharp-firstpass", "Assembly-CSharp-firstpass.csproj", "{9c53a959-b0c1-b6b9-de27-c61d7b5f56dd}"
+EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Assembly-CSharp", "Assembly-CSharp.csproj", "{d3039f6d-ab3e-5d31-0047-f351756ad6a6}"
 EndProject
 Global
@@ -8,6 +10,8 @@ Global
 		Debug|Any CPU = Debug|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{9c53a959-b0c1-b6b9-de27-c61d7b5f56dd}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9c53a959-b0c1-b6b9-de27-c61d7b5f56dd}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{d3039f6d-ab3e-5d31-0047-f351756ad6a6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{d3039f6d-ab3e-5d31-0047-f351756ad6a6}.Debug|Any CPU.Build.0 = Debug|Any CPU
 	EndGlobalSection

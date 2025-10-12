@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using DG.Tweening;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -30,15 +31,26 @@ public class GameManager : MonoBehaviour
     public Button b_Stop;
     public Button b_Back;
     
-    public TMP_Text demoText;
-    public string OffAllText;
+    
     [HideInInspector] public SendComPort sendComPort;
     [HideInInspector] public BluetoothManager bluetoothManager;
     [HideInInspector] public JsonClass jsonClass;
 
+    public TMP_Text Log;
+    public TMP_Text LogTime;
+
+    public GameObject Light1;
+    public GameObject Light5;
+    public GameObject Light6;
+    public GameObject LightABK;
+    public GameObject LightOBK;
+    public GameObject LightObshaga;
+    
     private Coroutine _coroutine;
+    private Coroutine _coroutin2;
     private bool _isDemo;
     private bool _isPlaying;
+    private bool _isObshee;
     
     void Start()
     {
@@ -82,6 +94,37 @@ public class GameManager : MonoBehaviour
         b_Stop.image.color = Color.white;
         b_Pause.image.color = Color.white;
         b_Back.image.color = Color.white;
+        List<Image> images = Light1.GetComponentsInChildren<Image>(true).ToList();
+        foreach (var image in images)
+        {
+            image.color = StartColor;
+        }
+        List<Image> images1 = Light5.GetComponentsInChildren<Image>(true).ToList();
+        foreach (var image in images1)
+        {
+            image.color = StartColor;
+        }
+        List<Image> images2 = Light6.GetComponentsInChildren<Image>(true).ToList();
+        foreach (var image in images2)
+        {
+            image.color = StartColor;
+        }
+        List<Image> images3 = LightObshaga.GetComponentsInChildren<Image>(true).ToList();
+        foreach (var image in images3)
+        {
+            image.color = StartColor;
+        }
+        List<Image> images4 = LightABK.GetComponentsInChildren<Image>(true).ToList();
+        foreach (var image in images4)
+        {
+            image.color = StartColor;
+        }
+        List<Image> images5 = LightOBK.GetComponentsInChildren<Image>(true).ToList();
+        foreach (var image in images5)
+        {
+            image.color = StartColor;
+        }
+        
     }
 
     private void OnShowMenu()
@@ -93,45 +136,139 @@ public class GameManager : MonoBehaviour
     IEnumerator OnDemo()
     {
         _isDemo = true;
-        demoText.text = OffAllText;
+        _isPlaying = true;
+        //demoText.text = OffAllText;
         OffAllLed();
+        float time = 0;
+        int number = 0;
         while (_isDemo)
         {
-            yield return new WaitForSeconds(1f);
-            float lastTime = 0;
-            foreach (var command in jsonClass.jsonData.commands)       
+            Log.text = "";
+            bluetoothManager.AddMessage(GetMessage(jsonClass.jsonData.workday[0]));
+            time = 0;
+            number = 0;
+            number++;
+            while (time < jsonClass.jsonData.workday[jsonClass.jsonData.workday.Count - 1].time * 60f)
             {
-                yield return new WaitForSeconds(GetTime(command.time-lastTime));
-                lastTime = command.time;
-                bluetoothManager.AddMessage(GetMessage(command));
-            }
-            
-            for (int i = 0; i < 11; i++)
-            {
-                sendComPort.AddMessage(177+i);
-                yield return new WaitForSeconds(2f);
+                while (!_isPlaying)
+                {
+                    yield return null;
+                }
+
+                time += Time.deltaTime;
+                LogTime.text = time.ToString();
+                if (time > jsonClass.jsonData.workday[number].time * 60f)
+                {
+                    Log.text += jsonClass.jsonData.workday[number].pin + "\r\n";
+                    bluetoothManager.AddMessage(GetMessage(jsonClass.jsonData.workday[number]));
+                    number++;
+                }
+
+                yield return null;
             }
         }
     }
 
-    private int GetMessage(Commands command)
+    IEnumerator OnCommon()
     {
-        if (command.pin == 15)
+        _isObshee = true;
+        _isPlaying = true;
+        //OffAllLed();
+        float time = 0;
+        int number = 0;
+        while (_isObshee)
         {
-            return 1;
+            Log.text = "";
+            bluetoothManager.AddMessage(GetMessage(jsonClass.jsonData.common[0]));
+            time = 0;
+            number = 0;
+            number++;
+            while (time < jsonClass.jsonData.common[jsonClass.jsonData.common.Count - 1].time * 60f)
+            {
+                while (!_isPlaying)
+                {
+                    yield return null;
+                }
+
+                time += Time.deltaTime;
+                LogTime.text = time.ToString();
+                if (time > jsonClass.jsonData.common[number].time * 60f)
+                {
+                    Log.text += jsonClass.jsonData.common[number].pin + "\r\n";
+                    bluetoothManager.AddMessage(GetMessage(jsonClass.jsonData.common[number]));
+                    number++;
+                }
+
+                yield return null;
+            }
         }
-        if (command.pin == 16)
+            
+    }
+
+    private int GetMessage(Commands command)
         {
-            return 2;
+            if (command.pin == 4) OnOffLight(command, LightObshaga);
+            if (command.pin == 5) OnOffLight(command, LightOBK);
+            if (command.pin == 6) OnOffLight(command, Light5);
+            if (command.pin == 1) OnOffLight(command, Light1);
+            if (command.pin == 9) OnOffLight(command, Light6);
+            if (command.pin == 12) OnOffLight(command, LightABK);
+
+            if (command.pin == 15)
+            {
+                return 1;
+            }
+
+            if (command.pin == 16)
+            {
+                return 2;
+            }
+
+            if (command.activate == 1)
+            {
+                return 176 + command.pin;
+            }
+            else
+            {
+                return 160 + command.pin;
+            }
         }
 
+        private void OnOffLight(Commands command, GameObject light)
+    {
+        List<Image> images = light.GetComponentsInChildren<Image>(true).ToList();
         if (command.activate == 1)
         {
-            return 176 + command.pin;
+            foreach (var image in images)
+            {
+                image.DOColor(FinishColor, 0.5f);
+            }
         }
         else
         {
-            return 160 + command.pin;
+            foreach (var image in images)
+            {
+                image.DOColor(StartColor, 0.5f);
+            }
+        }
+    }
+    
+    private void OnOffLight(int onoff, GameObject light)
+    {
+        List<Image> images = light.GetComponentsInChildren<Image>(true).ToList();
+        if (onoff == 1)
+        {
+            foreach (var image in images)
+            {
+                image.DOColor(FinishColor, 0.5f);
+            }
+        }
+        else
+        {
+            foreach (var image in images)
+            {
+                image.DOColor(StartColor, 0.5f);
+            }
         }
     }
 
@@ -155,12 +292,35 @@ public class GameManager : MonoBehaviour
 
     private void OnObshiy()
     {
-        
+        if (Obshiy.image.color == Color.white)
+        {
+            Obshiy.image.color = ColorButton;
+            if(_coroutin2!=null)
+                StopCoroutine(_coroutin2);
+            _coroutin2 = StartCoroutine(OnCommon());
+        }
+        else
+        {
+            Obshiy.image.color = Color.white;
+            OnStop();
+        }
     }
 
     private void OnWorkDay()
     {
-        
+        if (WorkDay.image.color == Color.white)
+        {
+            WorkDay.image.color = ColorButton;
+            if(_coroutine!=null)
+                StopCoroutine(_coroutine);
+            _coroutine = StartCoroutine(OnDemo());
+        }
+        else
+        {
+            WorkDay.image.color = Color.white;
+            OnStop();
+        }
+       
     }
 
     private void OnKorpus1()
@@ -169,11 +329,13 @@ public class GameManager : MonoBehaviour
         {
             Korpus1.image.color = ColorButton;
             bluetoothManager.AddMessage(177);
+            OnOffLight(1, Light1);
         }
         else
         {
             Korpus1.image.color = Color.white;
             bluetoothManager.AddMessage(161);
+            OnOffLight(2, Light1);
         }
     }
 
@@ -183,11 +345,13 @@ public class GameManager : MonoBehaviour
         {
             Korpus5.image.color = ColorButton;
             bluetoothManager.AddMessage(182);
+            OnOffLight(1, Light5);
         }
         else
         {
             Korpus5.image.color = Color.white;
             bluetoothManager.AddMessage(166);
+            OnOffLight(0, Light5);
         }
     }
 
@@ -197,11 +361,13 @@ public class GameManager : MonoBehaviour
         {
             Korpus6.image.color = ColorButton;
             bluetoothManager.AddMessage(185);
+            OnOffLight(1, Light6);
         }
         else
         {
             Korpus6.image.color = Color.white;
             bluetoothManager.AddMessage(169);
+            OnOffLight(0, Light6);
         }
     }
     
@@ -211,11 +377,13 @@ public class GameManager : MonoBehaviour
         {
             ABK.image.color = ColorButton;
             bluetoothManager.AddMessage(188);
+            OnOffLight(1, LightABK);
         }
         else
         {
             ABK.image.color = Color.white;
             bluetoothManager.AddMessage(172);
+            OnOffLight(0, LightABK);
         }
     }
     private void OnOBK()
@@ -224,11 +392,13 @@ public class GameManager : MonoBehaviour
         {
             OBK.image.color = ColorButton;
             bluetoothManager.AddMessage(181);
+            OnOffLight(1, LightOBK);
         }
         else
         {
             OBK.image.color = Color.white;
             bluetoothManager.AddMessage(165);
+            OnOffLight(0, LightOBK);
         }
     }
     private void OnObshaga()
@@ -237,11 +407,13 @@ public class GameManager : MonoBehaviour
         {
             Obshaga.image.color = ColorButton;
             bluetoothManager.AddMessage(180);
+            OnOffLight(1, LightObshaga);
         }
         else
         {
             Obshaga.image.color = Color.white;
             bluetoothManager.AddMessage(164);
+            OnOffLight(0, LightObshaga);
         }
     }
     private void OnPlay()
@@ -259,13 +431,20 @@ public class GameManager : MonoBehaviour
     private void OnStop()
     {
         _isPlaying = false;
-        //TODO Выключаем цикл и гасим всё
+        _isDemo = false;
+        _isObshee = false;
+        if(_coroutine!=null)
+            StopCoroutine(_coroutine);
+        if(_coroutin2!=null)
+            StopCoroutine(_coroutin2);
+        bluetoothManager.AddMessage(160);
+        Init();
     }
     
     private void OnBack()
     {
+        OnStop();
         MenuPanel.SetActive(false);
-        //TODO Выключаем всё!!!
         bluetoothManager.AddMessage(160);
     }
 

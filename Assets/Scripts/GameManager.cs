@@ -68,9 +68,8 @@ public class GameManager : MonoBehaviour
         MenuPanel.SetActive(false);
     }
 
-    private void Init()
+    public void Init()
     {
-        b_Close.image.color = Color.white;
         Obshiy.image.color = Color.white;
         WorkDay.image.color = Color.white;
         Korpus1.image.color = Color.white;
@@ -267,6 +266,7 @@ public class GameManager : MonoBehaviour
     {
         MenuPanel.SetActive(false);
         //TODO Выключаем всё!!!
+        bluetoothManager.AddMessage(160);
     }
 
 }

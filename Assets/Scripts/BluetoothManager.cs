@@ -13,24 +13,30 @@ using UnityEngine.UI;
 public class BluetoothManager : MonoBehaviour
 {
 
+    public GameObject BluPanel;
     public TMP_Text Log;
-    public Button b_SearchDevices;
+    public Transform ButtonParent;
+    public GameObject ButtonPrefab;
     public Button b_Connect;
+    
     private Stream _stream;
 
     private BluetoothClient bluetoothClient;
     private IReadOnlyCollection<BluetoothDeviceInfo> devices;
+    private string _currentDevice;
 
     private Queue<int> _queue = new Queue<int>();
     private bool _isSend;
+    private GameManager _manager;
 
     public void Init()
     {
+        _manager = GetComponent<GameManager>();
         _isSend = true;
         //bluetoothClient = new BluetoothClient();
         devices = new List<BluetoothDeviceInfo>();
-        b_SearchDevices.onClick.AddListener(SearchDevices);
-        b_Connect.onClick.AddListener(OnConnect);
+        BluPanel.SetActive(true);
+        b_Connect.onClick.AddListener(()=>OnConnect(""));
     }
     
     private void Update()
@@ -43,7 +49,6 @@ public class BluetoothManager : MonoBehaviour
 
     public void SearchDevices()
     {
-        //devices.Clear();
         // Получаем список устройств
         devices = bluetoothClient.DiscoverDevices();
         //devices.AddRange(array);
@@ -51,24 +56,29 @@ public class BluetoothManager : MonoBehaviour
         // Выводим информацию о найденных устройствах
         foreach (var device in devices)
         {
-            
-            Log.text +=
-                $"Device Name: {device.DeviceName}, Address: {device.DeviceAddress}, Connected: {device.Connected}" +
-                "\r\n";
-            Debug.Log($"Device Name: {device.DeviceName}, Address: {device.DeviceAddress}, Connected: {device.Connected}");
+            Button button = Instantiate(ButtonPrefab, ButtonParent).GetComponent<Button>();
+            button.GetComponentInChildren<TMP_Text>().text = device.DeviceName;
+            button.onClick.AddListener(()=>OnConnect(device.DeviceName));
+            //Log.text +=
+            //    $"Device Name: {device.DeviceName}, Address: {device.DeviceAddress}, Connected: {device.Connected}" +
+             //   "\r\n";
         }
     }
 
-    private void OnConnect()
+    private void OnConnect(string deviceName)
     {
+        Log.text += "OnConnect" + "\r\n";
         ConnectToDevice(null);
-        foreach (var device in devices)
-        {
-            if (device.DeviceName == "TESTER")
-            {
-                ConnectToDevice(device.DeviceAddress);
-            }
-        }
+        
+        // foreach (var device in devices)
+        // {
+        //     if (device.DeviceName == deviceName)
+        //     {
+        //         Log.text += deviceName + "\r\n";
+        //         _currentDevice = deviceName;
+        //         ConnectToDevice(device.DeviceAddress);
+        //     }
+        // }
         
     }
 
@@ -76,13 +86,17 @@ public class BluetoothManager : MonoBehaviour
     public void ConnectToDevice(BluetoothAddress address)
     {
         BluetoothAddress ba = new BluetoothAddress(0x00211301E35D);
-        if(_stream!=null)
+        if (_stream != null)
+        {
             _stream.Close();
+        }
+
         if (bluetoothClient != null)
         {
             bluetoothClient.Close();
             bluetoothClient.Dispose();
         }
+
         try
         {
             bluetoothClient = new BluetoothClient();
@@ -90,17 +104,17 @@ public class BluetoothManager : MonoBehaviour
             bluetoothClient.Connect(ep);
             
             Log.text += "Connected successfully!"+ "\r\n";
-            Debug.Log("Connected successfully!");
+            BluPanel.SetActive(false);
+            _manager.Init();
+            AddMessage(160);
         }
         catch (Exception ex)
         {
-            Log.text += "Connection failed: "+ ex.Message + "\r\n";
-            Debug.LogError($"Connection failed: {ex.Message}");
+            Log.text += "Connection failed: !!!!!" + "\r\n";
+            //Debug.LogError($"Connection failed: {ex.Message}");
+            BluPanel.SetActive(true);
+            //OnConnect("");
         }
-    }
-
-    private void BluetootheClientConnectCallback(IAsyncResult result)
-    {
     }
 
     // Отправка данных
@@ -114,19 +128,6 @@ public class BluetoothManager : MonoBehaviour
         }
     }
 
-    // Чтение данных
-    public string ReceiveData()
-    {
-        if (bluetoothClient.Connected)
-        {
-            var stream = bluetoothClient.GetStream();
-            byte[] buffer = new byte[1024];
-            int bytesRead = stream.Read(buffer, 0, buffer.Length);
-            return System.Text.Encoding.ASCII.GetString(buffer, 0, bytesRead);
-        }
-        return null;
-    }
-
     void OnDestroy()
     {
         bluetoothClient?.Close();
@@ -135,7 +136,7 @@ public class BluetoothManager : MonoBehaviour
     private async Task MySendMessage(int number)
     {
         _isSend = false;
-        Debug.Log(number);
+        //Debug.Log(number);
         if (bluetoothClient.Connected)
         {
             try
@@ -147,9 +148,9 @@ public class BluetoothManager : MonoBehaviour
             }
             catch (Exception e)
             {
-                Log.text += e + "\r\n";
-                OnConnect();
-                Debug.Log(e);
+                Log.text += "Сообщение не отправлено!!!!" + "\r\n";
+                OnConnect(_currentDevice);
+                //Debug.Log(e);
             }
         }
         
@@ -164,7 +165,9 @@ public class BluetoothManager : MonoBehaviour
     
     void OnApplicationFocus(bool hasFocus)
     {
-        Log.text += "Focus: " + hasFocus + "\r\n";
+        Log.text = "Focus: " + hasFocus + "\r\n";
+        BluPanel.SetActive(true);
+        //OnConnect("");
     }
     
 }

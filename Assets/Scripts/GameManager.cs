@@ -48,6 +48,7 @@ public class GameManager : MonoBehaviour
     
     private Coroutine _coroutine;
     private Coroutine _coroutin2;
+    private Coroutine _coroutineDelay;
     private bool _isDemo;
     private bool _isPlaying;
     private bool _isObshee;
@@ -174,6 +175,7 @@ public class GameManager : MonoBehaviour
         _isObshee = true;
         _isPlaying = true;
         //OffAllLed();
+        bluetoothManager.AddMessage(176);
         float time = 0;
         int number = 0;
         while (_isObshee)
@@ -279,10 +281,11 @@ public class GameManager : MonoBehaviour
 
     private void OffAllLed()
     {
-        for (int i = 0; i < 14; i++)
-        {
-            sendComPort.AddMessage(161+i);
-        }
+        bluetoothManager.AddMessage(160);
+        // for (int i = 0; i < 14; i++)
+        // {
+        //     sendComPort.AddMessage(161+i);
+        // }
     }
 
     private void OnClose()
@@ -294,6 +297,9 @@ public class GameManager : MonoBehaviour
     {
         if (Obshiy.image.color == Color.white)
         {
+            WorkDay.image.color = Color.white;
+            OnStop();
+            OnPlay();
             Obshiy.image.color = ColorButton;
             if(_coroutin2!=null)
                 StopCoroutine(_coroutin2);
@@ -310,6 +316,9 @@ public class GameManager : MonoBehaviour
     {
         if (WorkDay.image.color == Color.white)
         {
+            Obshiy.image.color = Color.white;
+            OnStop();
+            OnPlay();
             WorkDay.image.color = ColorButton;
             if(_coroutine!=null)
                 StopCoroutine(_coroutine);
@@ -323,7 +332,7 @@ public class GameManager : MonoBehaviour
        
     }
 
-    private void OnKorpus1()
+    public void OnKorpus1()
     {
         if (Korpus1.image.color == Color.white)
         {
@@ -339,7 +348,7 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    private void OnKorpus5()
+    public void OnKorpus5()
     {
         if (Korpus5.image.color == Color.white)
         {
@@ -355,7 +364,7 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    private void OnKorpus6()
+    public void OnKorpus6()
     {
         if (Korpus6.image.color == Color.white)
         {
@@ -371,7 +380,7 @@ public class GameManager : MonoBehaviour
         }
     }
     
-    private void OnABK()
+    public void OnABK()
     {
         if (ABK.image.color == Color.white)
         {
@@ -386,7 +395,7 @@ public class GameManager : MonoBehaviour
             OnOffLight(0, LightABK);
         }
     }
-    private void OnOBK()
+    public void OnOBK()
     {
         if (OBK.image.color == Color.white)
         {
@@ -401,7 +410,7 @@ public class GameManager : MonoBehaviour
             OnOffLight(0, LightOBK);
         }
     }
-    private void OnObshaga()
+    public void OnObshaga()
     {
         if (Obshaga.image.color == Color.white)
         {
@@ -416,28 +425,65 @@ public class GameManager : MonoBehaviour
             OnOffLight(0, LightObshaga);
         }
     }
+
     private void OnPlay()
     {
-        _isPlaying = true;
-        b_Play.image.color = ColorButton;
-        b_Pause.image.color = Color.white;
+       
+        if (_isObshee)
+        {
+            b_Play.image.color = ColorButton;
+            b_Pause.image.color = Color.white;
+            bluetoothManager.AddMessage(1);
+            if(_coroutineDelay!=null)
+                StopCoroutine(_coroutineDelay);
+            _coroutineDelay = StartCoroutine(DelayCor());
+        }
+        if(_isDemo)
+        {
+            b_Play.image.color = ColorButton;
+            b_Pause.image.color = Color.white;
+            bluetoothManager.AddMessage(2);
+            if(_coroutineDelay!=null)
+                StopCoroutine(_coroutineDelay);
+            _coroutineDelay = StartCoroutine(DelayCor());
+        }
+        
     }
+
+    IEnumerator DelayCor()
+    {
+        yield return new WaitForSeconds(jsonClass.jsonData.delaySound);
+        _isPlaying = true;
+    }
+
     private void OnPause()
     {
-        _isPlaying = false;
-        b_Play.image.color = Color.white;
-        b_Pause.image.color = ColorButton;
+        if (_isObshee || _isDemo)
+        {
+            _isPlaying = false;
+            b_Play.image.color = Color.white;
+            b_Pause.image.color = ColorButton;
+            bluetoothManager.AddMessage(3);
+        }
     }
     private void OnStop()
     {
         _isPlaying = false;
         _isDemo = false;
         _isObshee = false;
-        if(_coroutine!=null)
+        if (_coroutine != null)
+        {
             StopCoroutine(_coroutine);
-        if(_coroutin2!=null)
+            _coroutine = null;
+        }
+
+        if (_coroutin2 != null)
+        {
             StopCoroutine(_coroutin2);
+            _coroutin2 = null;
+        }
         bluetoothManager.AddMessage(160);
+        bluetoothManager.AddMessage(0);
         Init();
     }
     

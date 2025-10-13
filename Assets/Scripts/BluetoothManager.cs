@@ -160,7 +160,7 @@ public class BluetoothManager : MonoBehaviour
                 byte[] data = BitConverter.GetBytes(number);
                 //mySerialPort.Write(data, 0, 1);
                 _stream = bluetoothClient.GetStream();
-                _stream.Write(data, 0, data.Length);
+                _stream.Write(data, 0, 1);
             }
             catch (Exception e)
             {
